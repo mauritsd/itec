@@ -1,4 +1,4 @@
-package org.vu.contest.team24;
+
 
 import java.util.Properties;
 import java.util.Random;
@@ -7,7 +7,6 @@ import org.vu.contest.ContestEvaluation;
 import org.vu.contest.ContestSubmission;
 
 public class MyContestSubmission implements ContestSubmission {
-	private Random rnd;
 	private ContestEvaluation evaluation;
 	private boolean seperable;
 	private boolean regular;
@@ -15,19 +14,18 @@ public class MyContestSubmission implements ContestSubmission {
 	private boolean multimodal;
 	private int evaluations;
 	
-	public MyContestSubmission()
-	{
-		this.rnd = new Random();
+	public MyContestSubmission() {
+
 	}
 	
-	public void setSeed(long seed)
-	{
-		// Set seed of algortihms random process
-		this.rnd.setSeed(seed);
+	public void setSeed(long seed) {
+		RandomSingleton randomSingleton = RandomSingleton.getInstance();
+		Random random = new Random();
+		random.setSeed(seed);
+		randomSingleton.setRandom(random);
 	}
 
-	public void setEvaluation(ContestEvaluation evaluation)
-	{
+	public void setEvaluation(ContestEvaluation evaluation) {
 		// Set evaluation problem used in the run
 		this.evaluation = evaluation;
 		
@@ -39,8 +37,7 @@ public class MyContestSubmission implements ContestSubmission {
 		// Do sth with property values, e.g. specify relevant settings of your algorithm
 	}
 	
-	public void run()
-	{
+	public void run() {
 		// Run your algorithm here
 
 		// Getting data from evaluation problem (depends on the specific evaluation implementation)

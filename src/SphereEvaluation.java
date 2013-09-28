@@ -1,4 +1,4 @@
-package org.vu.contest.team24;
+
 
 import java.util.Properties;
 
