@@ -5,6 +5,7 @@ import java.util.Random;
 
 import org.vu.contest.ContestEvaluation;
 import org.vu.contest.ContestSubmission;
+import org.vu.contest.team24.RandomSingleton;
 
 public class MyContestSubmission implements ContestSubmission {
 	private ContestEvaluation evaluation;

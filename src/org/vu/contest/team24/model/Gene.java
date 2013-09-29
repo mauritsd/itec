@@ -1,4 +1,7 @@
+package org.vu.contest.team24.model;
 import java.util.Random;
+
+import org.vu.contest.team24.RandomSingleton;
 
 
 public class Gene {

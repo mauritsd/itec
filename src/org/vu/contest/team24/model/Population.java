@@ -1,8 +1,10 @@
+package org.vu.contest.team24.model;
+import java.util.List;
 import java.util.Vector;
 
 
 public class Population {
-	private Vector<Individual> individuals;
+	private List<Individual> individuals;
 	
 	public Population(int initialSize) {
 		this.individuals = new Vector<Individual>(initialSize);
@@ -25,10 +27,23 @@ public class Population {
 	
 	public Individual[] getIndividualArray() {
 		Individual[] individualArray = new Individual[this.individuals.size()];
-		for(int i=0; i<this.individuals.size(); i++) {
+		int individualCount = this.individuals.size();
+		for(int i=0; i < individualCount; i++) {
 			individualArray[i] = this.individuals.get(i);
 		}
 		
 		return individualArray;
+	}
+	
+	public List<Individual> getIndividualList() {
+		return this.individuals;
+	}
+	
+	public Individual getIndividual(int individualIndex) {
+		return this.individuals.get(individualIndex);
+	}
+	
+	public int getSize() {
+		return this.individuals.size();
 	}
 }
