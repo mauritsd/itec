@@ -17,9 +17,9 @@ public class Gene {
 		this(gene.getValue());
 	}
 	
-	public void mutate(double maximumChange) {
-		double change = (this.random.nextDouble() * maximumChange * 2.0) - maximumChange;
-		setValue(this.value + change);
+	public void mutate(double standardDeviation) {
+		double gaussian = this.random.nextGaussian();
+		setValue(this.value + (gaussian * standardDeviation));
 	}
 	
 	public double getValue() {

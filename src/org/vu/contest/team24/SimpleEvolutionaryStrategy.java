@@ -1,9 +1,9 @@
 package org.vu.contest.team24;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
-import java.util.Vector;
 
 import org.vu.contest.ContestEvaluation;
 import org.vu.contest.team24.model.Gene;
@@ -11,61 +11,59 @@ import org.vu.contest.team24.model.Individual;
 import org.vu.contest.team24.model.Population;
 
 
-public class SimpleEvolutionStrategy implements EvolutionStrategy {
+public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 	private Population currentPopulation;
 	private ContestEvaluation evaluation;
 	private boolean shouldTerminate;
 	private Random random;
 	private float mutationChance;
+	private float crossoverChance;
 	
 	
-	public SimpleEvolutionStrategy(ContestEvaluation evaluation, float mutationChance) {
+	public SimpleEvolutionaryStrategy(ContestEvaluation evaluation, float mutationChance, float crossoverChance) {
 		this.currentPopulation = new Population(10);
 		this.evaluation = evaluation;
 		this.random = RandomSingleton.getInstance().getRandom();
 		this.mutationChance = mutationChance;
-		
+		this.crossoverChance = crossoverChance;
 	}
 	
 	@Override
 	public void evolveGeneration() {
-		List<Individual> individuals = new Vector<Individual>(this.currentPopulation.getIndividualList());
+		List<Individual> individuals = new ArrayList<Individual>(this.currentPopulation.getIndividualList());
 		List<Individual> nextIndividuals = selectParents(individuals);
+				
+		if(nextIndividuals == null) {
+			this.shouldTerminate = true;
+			return;
+		}
+				
+		mutationOperator(nextIndividuals);
+		crossoverOperator(nextIndividuals);
 		
-		mutateIndividuals(nextIndividuals);
-		//crossoverIndividuals(nextIndividuals)
-		
-		this.currentPopulation = new Population((Individual[]) nextIndividuals.toArray());
-
+		Object[] objectArray = nextIndividuals.toArray();
+		Individual[] individualArray = Arrays.copyOf(objectArray, objectArray.length, Individual[].class);
+		this.currentPopulation = new Population(individualArray);
 	}
 	
 	private List<Individual> selectParents(List<Individual> individuals) {
-		// Have to copy the vector here since we don't want it to sort the original individual vector in place.
-		// Sort list to get the ranking.
-		Collections.sort(individuals, new Comparator<Individual>() {
-			@Override
-			public int compare(Individual i1, Individual i2) {
-				try {
-					double fitnessOne = i1.getFitness(SimpleEvolutionStrategy.this.evaluation);
-					double fitnessTwo = i2.getFitness(SimpleEvolutionStrategy.this.evaluation);				
-
-					if(fitnessOne == fitnessTwo) {
-						return 0;
-					} else if(fitnessOne < fitnessTwo) {
-						return -1;
-					} else {
-						return 1;
-					}
-				} catch (MaximumEvaluationsExceededException e) {
-					throw new IllegalStateException("exceeded maximum evaluations in a place where this shouldn't happen!");
-				}
+		for(Individual individual : individuals) {
+			try {
+				individual.getFitness(this.evaluation);
+			} catch (MaximumEvaluationsExceededException e) {
+				return null;
 			}
-		});
+		}
+		
+		
+		// Sort list to get the ranking.
+		individuals = new ArrayList<Individual>(individuals);
+		Collections.sort(individuals, new FitnessComparator(this.evaluation));
 		
 		int populationSize = individuals.size();
 		float spacing = 1 / populationSize;
 		float position = this.random.nextFloat() * spacing;
-		List<Individual> parents = new Vector<Individual>(populationSize);
+		List<Individual> parents = new ArrayList<Individual>(populationSize);
 		
 		int i = 0;
 		int currentParent = 0;
@@ -92,10 +90,10 @@ public class SimpleEvolutionStrategy implements EvolutionStrategy {
 	}
 	
 	private float probabilityForRank(int rank, int size, int expectedOffspring) {
-		return ((2 - expectedOffspring) / size) + (((2 * rank)*(expectedOffspring - 1)) / (size * (size - 1)));
+		return ((2 - expectedOffspring) / size) + (((2 * rank) * (expectedOffspring - 1)) / (size * (size - 1)));
 	}
 	
-	private void mutateIndividuals(List<Individual> individuals) {
+	private void mutationOperator(List<Individual> individuals) {
 		int populationSize = individuals.size();
 		
 		for(int i = 0; i < populationSize; i++) {
@@ -109,6 +107,31 @@ public class SimpleEvolutionStrategy implements EvolutionStrategy {
 				
 			}
 		}
+	}
+	
+	private void crossoverOperator(List<Individual> individuals) {
+		int populationSize = individuals.size();
+		
+		for(int i = 0; i < populationSize; i++) {
+			Individual individual = individuals.get(i);
+			if(!(this.random.nextFloat() > this.crossoverChance)) {
+				int j;
+				do {
+					j = this.random.nextInt(populationSize);
+				} while(j == i);
+				Individual otherIndividual = individuals.get(j);
+				
+				int chromosomeSize = individual.getChromosomeSize();
+				int crossoverPoint = this.random.nextInt(chromosomeSize + 1);
+				
+				for(int n = 0; n < chromosomeSize; n++) {
+					if(n >= crossoverPoint) {
+						individual.swapGene(otherIndividual, n);
+					}
+				}
+			}
+		}
+		
 	}
 	
 	@Override

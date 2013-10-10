@@ -1,20 +1,20 @@
 package org.vu.contest.team24.model;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 
 public class Population {
 	private List<Individual> individuals;
 	
 	public Population(int initialSize) {
-		this.individuals = new Vector<Individual>(initialSize);
+		this.individuals = new ArrayList<Individual>(initialSize);
 		for(int i=0; i < initialSize; i++) {
 			individuals.add(new Individual());
 		}
 	}
 	
 	public Population(Individual[] individuals) {
-		this.individuals = new Vector<Individual>(individuals.length);
+		this.individuals = new ArrayList<Individual>(individuals.length);
 		for(Individual individual : individuals) {
 			this.individuals.add(individual);
 		}

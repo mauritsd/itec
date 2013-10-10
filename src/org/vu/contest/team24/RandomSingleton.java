@@ -1,4 +1,6 @@
 package org.vu.contest.team24;
+
+
 import java.util.Random;
 
 public class RandomSingleton {
