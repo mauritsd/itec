@@ -10,11 +10,18 @@ public class DoubleGene implements Gene {
 	private double value;
 	private Random random;
 	
-	public DoubleGene(float min, float max) {
+	public DoubleGene(double min, double max) {
 		this.min = min;
 		this.max = max;
 		this.random = RandomSingleton.getInstance().getRandom();
 		this.value = (this.random.nextDouble() * (this.max - this.min)) - this.min;
+	}
+	
+	public DoubleGene(DoubleGene gene) {
+		this.min = gene.min;
+		this.max = gene.max;
+		this.random = RandomSingleton.getInstance().getRandom();
+		this.value = gene.value;
 	}
 	
 	@Override
@@ -24,13 +31,15 @@ public class DoubleGene implements Gene {
 		setValue(this.value + amount);
 	}
 	
-	public void crossover(DoubleGene otherGene) {
+	public void crossover(Gene otherGene) {
+		DoubleGene otherDoubleGene = (DoubleGene)otherGene;
+		
 		double ourValue = (Double) this.getValue();
 		double theirValue = (Double) otherGene.getValue();
 		double averageValue = 0.5f * ourValue + 0.5f * theirValue;
 		
 		this.setValue(averageValue);
-		otherGene.setValue(averageValue);
+		otherDoubleGene.setValue(averageValue);
 	}
 	
 	@Override

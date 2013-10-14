@@ -41,11 +41,11 @@ public class MyContestSubmission implements ContestSubmission {
 		
 		this.strategy = new SimpleEvolutionaryStrategy(this.evaluation);
 		this.strategy.setCrossoverChance(0.2);
-		this.strategy.setCrossoverChanceScalingFactor(1.0);
+		this.strategy.setCrossoverChanceScalingFactor(0.9);
 		this.strategy.setMutationChance(1.0);
 		this.strategy.setMutationStandardDeviation(0.3);
-		this.strategy.setMutationStandardDeviationScalingFactor(1.0);
-		this.strategy.setMutationChanceScalingFactor(1.0);
+		this.strategy.setMutationStandardDeviationScalingFactor(0.9);
+		this.strategy.setMutationChanceScalingFactor(0.9);
 		this.strategy.setFittestExpectedOffspring(2.0);
 		this.strategy.setPopulationSize(30);
 	}
