@@ -1,4 +1,5 @@
 package org.vu.contest.team24;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,22 +15,118 @@ import org.vu.contest.team24.model.Population;
 public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 	private Population currentPopulation;
 	private ContestEvaluation evaluation;
+	private int populationSize;
 	private boolean shouldTerminate;
 	private Random random;
-	private float mutationChance;
-	private float crossoverChance;
+	private double mutationChance;
+	private double mutationStandardDeviation;
+	private double mutationChanceScalingFactor;
+	private double mutationStandardDeviationScalingFactor;
+	private double crossoverChance;
+	private double crossoverChanceScalingFactor;
+	private double fittestExpectedOffspring;
 	
-	
-	public SimpleEvolutionaryStrategy(ContestEvaluation evaluation, float mutationChance, float crossoverChance) {
-		this.currentPopulation = new Population(10);
+	public SimpleEvolutionaryStrategy(ContestEvaluation evaluation) {
 		this.evaluation = evaluation;
 		this.random = RandomSingleton.getInstance().getRandom();
+	}
+	
+	public int getPopulationSize() {
+		return this.populationSize;
+	}
+
+	public void setPopulationSize(int populationSize) {
+		this.populationSize = populationSize;
+	}
+
+	public double getMutationChance() {
+		return this.mutationChance;
+	}
+
+	public void setMutationChance(double mutationChance) {
 		this.mutationChance = mutationChance;
+	}
+
+	public double getMutationStandardDeviation() {
+		return this.mutationStandardDeviation;
+	}
+
+	public void setMutationStandardDeviation(double mutationStandardDeviation) {
+		this.mutationStandardDeviation = mutationStandardDeviation;
+	}
+	
+	
+	public double getMutationStandardDeviationScalingFactor() {
+		return this.mutationStandardDeviationScalingFactor;
+	}
+
+	public void setMutationStandardDeviationScalingFactor(
+			double mutationStandardDeviationScalingFactor) {
+		this.mutationStandardDeviationScalingFactor = mutationStandardDeviationScalingFactor;
+	}
+
+	public double getCrossoverChance() {
+		return this.crossoverChance;
+	}
+
+	public double getMutationChanceScalingFactor() {
+		return this.mutationChanceScalingFactor;
+	}
+
+	public void setMutationChanceScalingFactor(double mutationChanceScalingFactor) {
+		this.mutationChanceScalingFactor = mutationChanceScalingFactor;
+	}
+
+	public void setCrossoverChance(double crossoverChance) {
 		this.crossoverChance = crossoverChance;
+	}
+
+	public double getCrossoverChanceScalingFactor() {
+		return this.crossoverChanceScalingFactor;
+	}
+
+	public void setCrossoverChanceScalingFactor(double crossoverChanceScalingFactor) {
+		this.crossoverChanceScalingFactor = crossoverChanceScalingFactor;
+	}
+	
+	public double getFittestExpectedOffspring() {
+		return this.fittestExpectedOffspring;
+	}
+
+	public void setFittestExpectedOffspring(double fittestExpectedOffspring) {
+		this.fittestExpectedOffspring = fittestExpectedOffspring;
+	}
+
+	public double getScaledMutationChance(double fitness) {
+		if(fitness < 0.0) {
+			return 1.0;
+		} else {
+			return Math.pow(this.mutationChanceScalingFactor, fitness) * this.mutationChance;
+		}
+	}
+	
+	public double getScaledMutationStandardDeviation(double fitness) {
+		if(fitness < 0.0) {
+			return 1.0;
+		} else {
+			return Math.pow(this.mutationStandardDeviationScalingFactor, fitness) * this.mutationStandardDeviation;
+		}
+	}
+	
+	public double getScaledCrossoverChance(double fitness) {
+		if(fitness < 0.0) {
+			return 1.0;
+		} else {
+			return Math.pow(this.crossoverChanceScalingFactor, fitness) * this.crossoverChance;
+		}		
 	}
 	
 	@Override
 	public void evolveGeneration() {
+		if(this.currentPopulation == null) {
+			this.currentPopulation = new Population(this.populationSize);
+		}
+		
 		List<Individual> individuals = new ArrayList<Individual>(this.currentPopulation.getIndividualList());
 		List<Individual> nextIndividuals = selectParents(individuals);
 				
@@ -37,9 +134,18 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 			this.shouldTerminate = true;
 			return;
 		}
-				
-		mutationOperator(nextIndividuals);
-		crossoverOperator(nextIndividuals);
+		
+		List<Double> fitnesses = new ArrayList<Double>(nextIndividuals.size());
+		for (Individual individual : nextIndividuals) {
+			try {
+				fitnesses.add(individual.getFitness(this.evaluation));
+			} catch (MaximumEvaluationsExceededException e) {
+				throw new IllegalStateException("exceeded maximum evaluations in a place where this shouldn't happen!");
+			}
+		}
+		
+		mutationOperator(nextIndividuals, fitnesses);
+		crossoverOperator(nextIndividuals, fitnesses);
 		
 		Object[] objectArray = nextIndividuals.toArray();
 		Individual[] individualArray = Arrays.copyOf(objectArray, objectArray.length, Individual[].class);
@@ -55,22 +161,21 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 			}
 		}
 		
-		
 		// Sort list to get the ranking.
 		individuals = new ArrayList<Individual>(individuals);
 		Collections.sort(individuals, new FitnessComparator(this.evaluation));
 		
 		int populationSize = individuals.size();
-		float spacing = 1 / populationSize;
-		float position = this.random.nextFloat() * spacing;
+		double spacing = 1 / populationSize;
+		double position = this.random.nextDouble() * spacing;
 		List<Individual> parents = new ArrayList<Individual>(populationSize);
 		
 		int i = 0;
 		int currentParent = 0;
-		float currentCumulative = probabilityForRank(i, populationSize, 2);
+		double currentCumulative = probabilityForRank(i, populationSize, this.fittestExpectedOffspring);
 		while(currentParent < populationSize) {
 			while(currentCumulative < position) {
-				currentCumulative += probabilityForRank(++i, populationSize, 2);
+				currentCumulative += probabilityForRank(++i, populationSize, this.fittestExpectedOffspring);
 			}
 			
 			parents.add(new Individual(individuals.get(i)));
@@ -82,26 +187,29 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 			if(position > 1.0) {
 				position -= 1.0;
 				i = 0;
-				currentCumulative = probabilityForRank(i, populationSize, 2);
+				currentCumulative = probabilityForRank(i, populationSize, this.fittestExpectedOffspring);
 			}
 		}
 		
 		return parents;
 	}
 	
-	private float probabilityForRank(int rank, int size, int expectedOffspring) {
+	private double probabilityForRank(int rank, int size, double expectedOffspring) {
 		return ((2 - expectedOffspring) / size) + (((2 * rank) * (expectedOffspring - 1)) / (size * (size - 1)));
 	}
 	
-	private void mutationOperator(List<Individual> individuals) {
+	private void mutationOperator(List<Individual> individuals, List<Double> fitnesses) {
 		int populationSize = individuals.size();
 		
-		for(int i = 0; i < populationSize; i++) {
+		for(int i = 0; i < populationSize; i++) {			
 			Individual individual = individuals.get(i);
+			double mutationChance = getScaledMutationChance(fitnesses.get(i));
+			double mutationStandardDeviation = getScaledMutationStandardDeviation(fitnesses.get(i));
+			
 			for(int j = 0; j < 10; j++) {
 				Gene gene = individual.getGene(j);
-				if(!(this.random.nextFloat() > this.mutationChance)) {
-					gene.mutate(1.0);
+				if(!(this.random.nextDouble() > mutationChance)) {
+					gene.mutate(mutationStandardDeviation);
 					individual.invalidateCachedFitness();
 				}
 				
@@ -109,12 +217,14 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 		}
 	}
 	
-	private void crossoverOperator(List<Individual> individuals) {
+	private void crossoverOperator(List<Individual> individuals, List<Double> fitnesses) {
 		int populationSize = individuals.size();
 		
 		for(int i = 0; i < populationSize; i++) {
 			Individual individual = individuals.get(i);
-			if(!(this.random.nextFloat() > this.crossoverChance)) {
+			double crossoverChance = getScaledCrossoverChance(fitnesses.get(i));
+			
+			if(!(this.random.nextDouble() > crossoverChance)) {
 				int j;
 				do {
 					j = this.random.nextInt(populationSize);
@@ -126,6 +236,9 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 				
 				for(int n = 0; n < chromosomeSize; n++) {
 					if(n >= crossoverPoint) {
+						//double mixingRatio = this.random.nextDouble();
+						
+						//individual.mixGene(otherIndividual, n, mixingRatio);
 						individual.swapGene(otherIndividual, n);
 					}
 				}

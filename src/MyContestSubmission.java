@@ -5,13 +5,12 @@ import java.util.Random;
 
 import org.vu.contest.ContestEvaluation;
 import org.vu.contest.ContestSubmission;
-import org.vu.contest.team24.EvolutionaryStrategy;
 import org.vu.contest.team24.RandomSingleton;
 import org.vu.contest.team24.SimpleEvolutionaryStrategy;
 
 public class MyContestSubmission implements ContestSubmission {
 	private ContestEvaluation evaluation;
-	private EvolutionaryStrategy strategy;
+	private SimpleEvolutionaryStrategy strategy;
 	
 	private boolean seperable;
 	private boolean regular;
@@ -40,7 +39,15 @@ public class MyContestSubmission implements ContestSubmission {
 		this.regular = Boolean.parseBoolean(props.getProperty("GlobalStructure"));
 		this.seperable = Boolean.parseBoolean(props.getProperty("Separable"));
 		
-		this.strategy = new SimpleEvolutionaryStrategy(this.evaluation, 0.1f, 0.9f);
+		this.strategy = new SimpleEvolutionaryStrategy(this.evaluation);
+		this.strategy.setCrossoverChance(0.2);
+		this.strategy.setCrossoverChanceScalingFactor(1.0);
+		this.strategy.setMutationChance(1.0);
+		this.strategy.setMutationStandardDeviation(0.3);
+		this.strategy.setMutationStandardDeviationScalingFactor(1.0);
+		this.strategy.setMutationChanceScalingFactor(1.0);
+		this.strategy.setFittestExpectedOffspring(2.0);
+		this.strategy.setPopulationSize(30);
 	}
 	
 	public void run() {

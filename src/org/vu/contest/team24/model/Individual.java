@@ -54,16 +54,20 @@ public class Individual {
 		individual.genes.set(geneIndex, ourGene);
 	}
 	
-	public void averageGene(Individual individual, int geneIndex) {
+	public void mixGene(Individual individual, int geneIndex) {
+		this.mixGene(individual, geneIndex, 0.5);
+	}
+	
+	public void mixGene(Individual individual, int geneIndex, double mixingRatio) {
 		invalidateCachedFitness();
 		individual.invalidateCachedFitness();
 		
 		Gene ourGene = this.genes.get(geneIndex);
 		Gene theirGene = individual.genes.get(geneIndex);
 		
-		double averageValue = (ourGene.getValue() + theirGene.getValue()) / 2.0;
-		ourGene.setValue(averageValue);
-		theirGene.setValue(averageValue);
+		double mixedValue = ((ourGene.getValue() * mixingRatio) + (theirGene.getValue() * (1.0 - mixingRatio)));
+		ourGene.setValue(mixedValue);
+		theirGene.setValue(mixedValue);
 	}
 	
 	public Gene[] getGeneArray() {
