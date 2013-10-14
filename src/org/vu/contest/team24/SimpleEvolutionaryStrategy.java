@@ -236,10 +236,10 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 				
 				for(int n = 0; n < chromosomeSize; n++) {
 					if(n >= crossoverPoint) {
-						//double mixingRatio = this.random.nextDouble();
+						double mixingRatio = this.random.nextDouble();
 						
-						//individual.mixGene(otherIndividual, n, mixingRatio);
-						individual.swapGene(otherIndividual, n);
+						individual.mixGene(otherIndividual, n, mixingRatio);
+						//individual.swapGene(otherIndividual, n);
 					}
 				}
 			}
