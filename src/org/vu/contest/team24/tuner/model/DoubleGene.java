@@ -14,7 +14,7 @@ public class DoubleGene implements Gene {
 		this.min = min;
 		this.max = max;
 		this.random = RandomSingleton.getInstance().getRandom();
-		this.value = (this.random.nextDouble() * (this.max - this.min)) - this.min;
+		this.value = (this.random.nextDouble() * (this.max - this.min)) + this.min;
 	}
 	
 	public DoubleGene(DoubleGene gene) {
@@ -36,7 +36,7 @@ public class DoubleGene implements Gene {
 		
 		double ourValue = (Double) this.getValue();
 		double theirValue = (Double) otherGene.getValue();
-		double averageValue = 0.5f * ourValue + 0.5f * theirValue;
+		double averageValue = 0.5 * ourValue + 0.5 * theirValue;
 		
 		this.setValue(averageValue);
 		otherDoubleGene.setValue(averageValue);

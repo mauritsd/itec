@@ -15,6 +15,11 @@ import org.vu.contest.team24.tuner.model.Gene;
 import org.vu.contest.team24.tuner.model.Individual;
 
 public class ParameterTuner {
+	private static final int POPULATION_SIZE = 16;
+	private static final double EXPECTED_OFFSPRING = 2.0;
+	private static final int RUNS_PER_INDIVIDUAL = 10;
+	private static final int GENERATIONS = 10;
+	
 	private Class<?> evaluationClass;
 	private String evaluationClassName;
 	private List<Individual> population;
@@ -22,6 +27,16 @@ public class ParameterTuner {
 	private Random random;
 
 	public ParameterTuner() {
+		RandomSingleton randomSingleton = RandomSingleton.getInstance();
+		Random random = new Random();
+		random.setSeed(new Date().getTime());
+		randomSingleton.setRandom(random);
+		this.random = random;
+		
+		this.population = new ArrayList<Individual>(POPULATION_SIZE);
+		for(int n = 0; n < POPULATION_SIZE; n++) {
+			this.population.add(new Individual());
+		}
 	}
 	
 	public static void main(String[] args) {
@@ -56,41 +71,41 @@ public class ParameterTuner {
 			System.exit(1);
 		}
 		
-		RandomSingleton randomSingleton = RandomSingleton.getInstance();
-		Random random = new Random();
-		random.setSeed(new Date().getTime());
-		randomSingleton.setRandom(random);
-		this.random = random;
-		for(int generation = 0; generation < 5; generation++) {
-			evolveGeneration();
-					
+		for(int generation = 0; generation < GENERATIONS; generation++) {
 			System.out.println("Generation "+ generation);
 			
-
+			evolveGeneration();
+		}
+		
+		Map<Individual, Double> fitnesses = getFitnesses(this.population);		
+		for(Individual individual : this.population) {
+			individual.printSummary(fitnesses.get(individual));
 		}
 	}
 	
-	private void evolveGeneration() {
-		int populationSize = 16;
-		if(this.population == null) {
-			this.population = new ArrayList<Individual>(populationSize);
-			for(int n = 0; n < populationSize; n++) {
-				this.population.add(new Individual());
+	private Map<Individual, Double> getFitnesses(List<Individual> population) {
+		TunerContestEvaluation evaluation = this.evaluation;
+		evaluation.reset();
+		Map<Individual, Double> fitnesses = new HashMap<Individual, Double>(population.size());
+		for (Individual individual : population) {
+			double fitnessSum = 0.0;
+			for(int run = 0; run < RUNS_PER_INDIVIDUAL; run++) {
+				SimpleEvolutionaryStrategy strategy = new SimpleEvolutionaryStrategy(evaluation);
+				individual.configureStrategy(strategy);
+				ParameterEvaluator parameterEvaluator = new ParameterEvaluator(evaluation, strategy);
+				parameterEvaluator.run();
+				evaluation.reset();
+				fitnessSum += parameterEvaluator.getFitness();
 			}
+
+			fitnesses.put(individual, fitnessSum / RUNS_PER_INDIVIDUAL);
 		}
 		
-		TunerContestEvaluation evaluation = this.evaluation;
-		Map<Individual, Double> fitnesses = new HashMap<Individual, Double>(this.population.size());
-		for (Individual individual : this.population) {
-			SimpleEvolutionaryStrategy strategy = new SimpleEvolutionaryStrategy(evaluation);
-			individual.configureStrategy(strategy);
-			
-			ParameterEvaluator parameterEvaluator = new ParameterEvaluator(evaluation, strategy);
-			parameterEvaluator.run();
-			evaluation.reset();
-			System.out.println(individual);
-			fitnesses.put(individual, parameterEvaluator.getFitness());
-		}
+		return fitnesses;
+	}
+	
+	private void evolveGeneration() {
+		Map<Individual, Double> fitnesses = getFitnesses(this.population);
 		
 		List<Individual> nextPopulation = selectParents(this.population, fitnesses);
 		for (Individual individual : nextPopulation) {
@@ -101,13 +116,13 @@ public class ParameterTuner {
 			}
 		}
 		
-		for(int i = 0; i < populationSize; i++) {
+		for(int i = 0; i < POPULATION_SIZE; i++) {
 			Individual individual = nextPopulation.get(i);
 			
 			if(!(this.random.nextDouble() > 0.2)) {
 				int j;
 				do {
-					j = this.random.nextInt(populationSize);
+					j = this.random.nextInt(POPULATION_SIZE);
 				} while(j == i);
 				Individual otherIndividual = nextPopulation.get(j);
 				
@@ -120,8 +135,7 @@ public class ParameterTuner {
 			}
 		}
 		
-		this.population = nextPopulation;
-		
+		this.population = nextPopulation;		
 	}
 	
 	private List<Individual> selectParents(List<Individual> individuals, Map<Individual, Double> fitnesses) {
@@ -130,7 +144,12 @@ public class ParameterTuner {
 		Collections.sort(individuals, new FitnessComparator(fitnesses));
 		
 		Individual fittestIndividual = individuals.get(0);
-		System.out.println("Fittest individual has fitness: "+fitnesses.get(fittestIndividual));
+		double fittestFitness = fitnesses.get(fittestIndividual);
+		System.out.println("Fittest individual has fitness: " + fittestFitness);
+		if(fittestFitness >= 9.9) {
+			fittestIndividual.printSummary(fittestFitness);
+		}
+		
 		
 		int populationSize = individuals.size();
 		double spacing = 1 / populationSize;
@@ -139,10 +158,10 @@ public class ParameterTuner {
 		
 		int i = 0;
 		int currentParent = 0;
-		double currentCumulative = probabilityForRank(i, populationSize, 2.0);
+		double currentCumulative = probabilityForRank(i, populationSize, EXPECTED_OFFSPRING);
 		while(currentParent < populationSize) {
 			while(currentCumulative < position) {
-				currentCumulative += probabilityForRank(++i, populationSize, 2.0);
+				currentCumulative += probabilityForRank(++i, populationSize, EXPECTED_OFFSPRING);
 			}
 			
 			parents.add(new Individual(individuals.get(i)));
@@ -154,7 +173,7 @@ public class ParameterTuner {
 			if(position > 1.0) {
 				position -= 1.0;
 				i = 0;
-				currentCumulative = probabilityForRank(i, populationSize, 2.0);
+				currentCumulative = probabilityForRank(i, populationSize, EXPECTED_OFFSPRING);
 			}
 		}
 		

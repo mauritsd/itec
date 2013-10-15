@@ -21,11 +21,11 @@ public class Individual {
 		this.genes = new ArrayList<Gene>();
 		this.genes.add(new MultipleChoiceGene("PopulationSize", new Object[] {10, 15, 30, 50}));
 		this.genes.add(new DoubleGene(0.1, 1.0)); // Mutation chance
-		this.genes.add(new DoubleGene(0.75, 1.0)); // Mutation chance scaling
+		this.genes.add(new DoubleGene(0.5, 1.0)); // Mutation chance scaling
 		this.genes.add(new DoubleGene(0.1, 1.0)); // Mutation stdev
-		this.genes.add(new DoubleGene(0.75, 1.0)); // Mutation stdev scaling
+		this.genes.add(new DoubleGene(0.5, 1.0)); // Mutation stdev scaling
 		this.genes.add(new DoubleGene(0.1, 1.0)); // Crossover chance
-		this.genes.add(new DoubleGene(0.75, 1.0)); // Crossover chance scaling
+		this.genes.add(new DoubleGene(0.5, 1.0)); // Crossover chance scaling
 		this.genes.add(new DoubleGene(1.5, 2.0)); // Expected offspring for fittest parent
 	}
 	
@@ -66,5 +66,28 @@ public class Individual {
 		strategy.setCrossoverChance((Double)crossoverProbabilityGene.getValue());
 		strategy.setCrossoverChanceScalingFactor((Double)crossoverProbabilityScalingGene.getValue());
 		strategy.setFittestExpectedOffspring((Double)fittestExpectedOffspringGene.getValue());
+	}
+	
+	public void printSummary(double fitness) {
+		MultipleChoiceGene populationSizeGene = (MultipleChoiceGene)this.genes.get(GENE_INDEX_POPULATION_SIZE);
+		DoubleGene mutationProbabilityGene = (DoubleGene)this.genes.get(GENE_INDEX_MUTATION_PROBABILITY);
+		DoubleGene mutationStandardDeviationGene = (DoubleGene)this.genes.get(GENE_INDEX_MUTATION_STANDARD_DEVIATION);
+		DoubleGene mutationProbabilityScalingGene = (DoubleGene)this.genes.get(GENE_INDEX_MUTATION_PROBABILITY_SCALING_FACTOR);
+		DoubleGene mutationStandardDeviationScalingGene = (DoubleGene)this.genes.get(GENE_INDEX_MUTATION_STANDARD_DEVIATION_SCALING_FACTOR);
+		DoubleGene crossoverProbabilityGene = (DoubleGene)this.genes.get(GENE_INDEX_CROSSOVER_PROBABILITY);
+		DoubleGene crossoverProbabilityScalingGene = (DoubleGene)this.genes.get(GENE_INDEX_CROSSOVER_PROBABILITY_SCALING_FACTOR);
+		DoubleGene fittestExpectedOffspringGene = (DoubleGene)this.genes.get(GENE_INDEX_FITTEST_EXPECTED_OFFSPRING);
+		
+		System.out.println("Individual " + this + ", fitness: " + fitness);
+		System.out.println("   Population size: " + populationSizeGene.getValue());
+		System.out.println("   Mutation chance: " + mutationProbabilityGene.getValue());
+		System.out.println("   Mutation chance scaling factor: " + mutationProbabilityScalingGene.getValue());
+		System.out.println("   Mutation standard deviation: " + mutationStandardDeviationGene.getValue());
+		System.out.println("   Mutation standard deviation scaling factor: " + mutationStandardDeviationScalingGene.getValue());
+		System.out.println("   Crossover chance: " + crossoverProbabilityGene.getValue());
+		System.out.println("   Mutation chance scaling factor: " + crossoverProbabilityScalingGene.getValue());
+		System.out.println("   Expected offspring for fittest parent: " + fittestExpectedOffspringGene.getValue());
+		System.out.println("========================");
+
 	}
 }
