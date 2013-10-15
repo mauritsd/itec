@@ -26,7 +26,7 @@ public class DoubleGene implements Gene {
 	
 	@Override
 	public void mutate() {		
-		float amount = (float)this.random.nextGaussian();
+		double amount = this.random.nextGaussian() * (this.max - this.min);
 		
 		setValue(this.value + amount);
 	}

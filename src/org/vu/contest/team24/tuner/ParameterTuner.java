@@ -79,9 +79,9 @@ public class ParameterTuner {
 			}
 		}
 		
+		TunerContestEvaluation evaluation = this.evaluation;
 		Map<Individual, Double> fitnesses = new HashMap<Individual, Double>(this.population.size());
 		for (Individual individual : this.population) {
-			TunerContestEvaluation evaluation = this.evaluation;
 			SimpleEvolutionaryStrategy strategy = new SimpleEvolutionaryStrategy(evaluation);
 			individual.configureStrategy(strategy);
 			

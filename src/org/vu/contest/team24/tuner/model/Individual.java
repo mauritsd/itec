@@ -20,11 +20,11 @@ public class Individual {
 	public Individual() {
 		this.genes = new ArrayList<Gene>();
 		this.genes.add(new MultipleChoiceGene("PopulationSize", new Object[] {10, 15, 30, 50}));
-		this.genes.add(new DoubleGene(0.0, 1.0)); // Mutation chance
+		this.genes.add(new DoubleGene(0.1, 1.0)); // Mutation chance
 		this.genes.add(new DoubleGene(0.75, 1.0)); // Mutation chance scaling
 		this.genes.add(new DoubleGene(0.1, 1.0)); // Mutation stdev
 		this.genes.add(new DoubleGene(0.75, 1.0)); // Mutation stdev scaling
-		this.genes.add(new DoubleGene(0.0, 1.0)); // Crossover chance
+		this.genes.add(new DoubleGene(0.1, 1.0)); // Crossover chance
 		this.genes.add(new DoubleGene(0.75, 1.0)); // Crossover chance scaling
 		this.genes.add(new DoubleGene(1.5, 2.0)); // Expected offspring for fittest parent
 	}
