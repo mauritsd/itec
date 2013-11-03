@@ -18,7 +18,7 @@ public class ParameterTuner {
 	private static final int POPULATION_SIZE = 16;
 	private static final double EXPECTED_OFFSPRING = 2.0;
 	private static final int RUNS_PER_INDIVIDUAL = 10;
-	private static final int GENERATIONS = 10;
+	private static final int GENERATIONS = 20;
 	
 	private Class<?> evaluationClass;
 	private String evaluationClassName;
@@ -109,10 +109,10 @@ public class ParameterTuner {
 		
 		List<Individual> nextPopulation = selectParents(this.population, fitnesses);
 		for (Individual individual : nextPopulation) {
-			for(Gene g : individual.getGenes()) {
-				if(!(this.random.nextDouble() > 0.5)) {
-					g.mutate();
-				}
+			List<Gene> genes = individual.getGenes();
+			if(!(this.random.nextDouble() > 0.5)) {
+				Gene g = genes.get(this.random.nextInt(genes.size()));
+				g.mutate();
 			}
 		}
 		
@@ -146,13 +146,13 @@ public class ParameterTuner {
 		Individual fittestIndividual = individuals.get(0);
 		double fittestFitness = fitnesses.get(fittestIndividual);
 		System.out.println("Fittest individual has fitness: " + fittestFitness);
-		if(fittestFitness >= 9.9) {
+		if(fittestFitness >= 0.0) {
 			fittestIndividual.printSummary(fittestFitness);
 		}
 		
 		
 		int populationSize = individuals.size();
-		double spacing = 1 / populationSize;
+		double spacing = 1.0 / populationSize;
 		double position = this.random.nextDouble() * spacing;
 		List<Individual> parents = new ArrayList<Individual>(populationSize);
 		
@@ -181,7 +181,9 @@ public class ParameterTuner {
 	}
 	
 	private double probabilityForRank(int rank, int size, double expectedOffspring) {
-		return ((2 - expectedOffspring) / size) + (((2 * rank) * (expectedOffspring - 1)) / (size * (size - 1)));
+		rank = size - rank - 1;
+		
+		return ((2.0 - expectedOffspring) / (double)size) + (((2.0 * (double)rank) * (expectedOffspring - 1.0)) / ((double)size * ((double)size - 1.0)));
 	}
 	
 }

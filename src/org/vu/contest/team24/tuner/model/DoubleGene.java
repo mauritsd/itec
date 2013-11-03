@@ -33,13 +33,15 @@ public class DoubleGene implements Gene {
 	
 	public void crossover(Gene otherGene) {
 		DoubleGene otherDoubleGene = (DoubleGene)otherGene;
+		double ratio = this.random.nextDouble();
+		
 		
 		double ourValue = (Double) this.getValue();
 		double theirValue = (Double) otherGene.getValue();
-		double averageValue = 0.5 * ourValue + 0.5 * theirValue;
+		double mixedValue = (ratio * ourValue) + ((1-ratio) * theirValue);
 		
-		this.setValue(averageValue);
-		otherDoubleGene.setValue(averageValue);
+		this.setValue(mixedValue);
+		otherDoubleGene.setValue(mixedValue);
 	}
 	
 	@Override

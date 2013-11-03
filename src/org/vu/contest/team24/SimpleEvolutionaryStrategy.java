@@ -166,7 +166,7 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 		Collections.sort(individuals, new FitnessComparator(this.evaluation));
 		
 		int populationSize = individuals.size();
-		double spacing = 1 / populationSize;
+		double spacing = 1.0 / populationSize;
 		double position = this.random.nextDouble() * spacing;
 		List<Individual> parents = new ArrayList<Individual>(populationSize);
 		
@@ -195,7 +195,9 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 	}
 	
 	private double probabilityForRank(int rank, int size, double expectedOffspring) {
-		return ((2 - expectedOffspring) / size) + (((2 * rank) * (expectedOffspring - 1)) / (size * (size - 1)));
+		rank = size - rank - 1;
+		
+		return ((2.0 - expectedOffspring) / (double)size) + (((2.0 * (double)rank) * (expectedOffspring - 1.0)) / ((double)size * ((double)size - 1.0)));
 	}
 	
 	private void mutationOperator(List<Individual> individuals, List<Double> fitnesses) {
@@ -205,14 +207,11 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 			Individual individual = individuals.get(i);
 			double mutationChance = getScaledMutationChance(fitnesses.get(i));
 			double mutationStandardDeviation = getScaledMutationStandardDeviation(fitnesses.get(i));
-			
-			for(int j = 0; j < 10; j++) {
-				Gene gene = individual.getGene(j);
-				if(!(this.random.nextDouble() > mutationChance)) {
-					gene.mutate(mutationStandardDeviation);
-					individual.invalidateCachedFitness();
-				}
+			if(!(this.random.nextDouble() > mutationChance)) {
+				Gene gene = individual.getGene(this.random.nextInt(10));
 				
+				gene.mutate(mutationStandardDeviation);
+				individual.invalidateCachedFitness();
 			}
 		}
 	}

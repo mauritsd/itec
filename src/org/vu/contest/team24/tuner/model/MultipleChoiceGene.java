@@ -11,8 +11,10 @@ public class MultipleChoiceGene implements Gene {
 	private int value;
 	private List<Object> options;
 	private Random random;
+	private boolean ordered;
 	
-	public MultipleChoiceGene(String type, Object[] options) {
+	
+	public MultipleChoiceGene(String type, Object[] options, boolean ordered) {
 		this.type = type;
 		this.options = new ArrayList<Object>();
 		for (Object option : options) {
@@ -20,6 +22,7 @@ public class MultipleChoiceGene implements Gene {
 		}
 		this.random = RandomSingleton.getInstance().getRandom();
 		this.value = this.random.nextInt(this.options.size());
+		this.ordered = ordered;
 	}
 	
 	public MultipleChoiceGene(MultipleChoiceGene gene) {
@@ -27,11 +30,23 @@ public class MultipleChoiceGene implements Gene {
 		this.options = gene.options;
 		this.value = gene.value;
 		this.random = RandomSingleton.getInstance().getRandom();
+		this.ordered = gene.ordered;
 	}
 	
 	@Override
 	public void mutate() {
-		this.value = this.random.nextInt(this.options.size());
+		if(this.ordered) {
+			this.value += this.random.nextBoolean() ? 1 : -1;
+			
+			if(this.value >= this.options.size()) {
+				this.value = this.options.size() - 2;
+			}
+			if(this.value < 0) {
+				this.value = 1;
+			}
+		} else {
+			this.value = this.random.nextInt(this.options.size());
+		}
 	}
 	
 	public void crossover(Gene otherGene) {
