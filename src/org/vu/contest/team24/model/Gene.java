@@ -18,6 +18,8 @@ public class Gene {
 	}
 	
 	public void mutate(double standardDeviation) {
+		// Mutate the gene value with the a value drawn from the gaussian 
+		// with the given standardDeviation.
 		double gaussian = this.random.nextGaussian();
 		setValue(this.value + (gaussian * standardDeviation));
 	}
@@ -27,6 +29,8 @@ public class Gene {
 	}
 	
 	public void setValue(double value) {
+		// If the value lies outside of the interval [-5.0, 5.0] clamp it to
+		// the boundary.
 		if(value > 5.0) {
 			value = 5.0;
 		}

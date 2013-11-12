@@ -123,18 +123,25 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 	
 	@Override
 	public void evolveGeneration() {
+		// If we're at the first generation then we need to create it.
 		if(this.currentPopulation == null) {
 			this.currentPopulation = new Population(this.populationSize);
 		}
 		
+		// Copy the list of current individuals and apply parent selection to get the list of parents.
 		List<Individual> individuals = new ArrayList<Individual>(this.currentPopulation.getIndividualList());
 		List<Individual> nextIndividuals = selectParents(individuals);
-				
+		
+		// If nextIndividuals is null this means selectParents() has burned through the evaluation budget.
+		// This means we should signal the caller that it should terminate.
 		if(nextIndividuals == null) {
 			this.shouldTerminate = true;
 			return;
 		}
 		
+		// Get fitnesses for all individuals since we need them for parameter scaling.
+		// Note that this does not burn through the evaluation budget because all the fitnesses
+		// were generated and cached during the parent selection.
 		List<Double> fitnesses = new ArrayList<Double>(nextIndividuals.size());
 		for (Individual individual : nextIndividuals) {
 			try {
@@ -144,15 +151,20 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 			}
 		}
 		
+		// Apply mutation and crossover operators to the parents.
 		mutationOperator(nextIndividuals, fitnesses);
 		crossoverOperator(nextIndividuals, fitnesses);
 		
+		// Copy the mutated/crossed parents to be the current iteration.
 		Object[] objectArray = nextIndividuals.toArray();
 		Individual[] individualArray = Arrays.copyOf(objectArray, objectArray.length, Individual[].class);
 		this.currentPopulation = new Population(individualArray);
 	}
 	
 	private List<Individual> selectParents(List<Individual> individuals) {
+		// Make sure that if we get a MaximumEvaluationsExceededException that we get it
+		// here rather than at some other unexpected point. This means we can safely treat
+		// a MaximumEvaluationsExceededException in most other places as an error condition.
 		for(Individual individual : individuals) {
 			try {
 				individual.getFitness(this.evaluation);
@@ -161,10 +173,12 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 			}
 		}
 		
-		// Sort list to get the ranking.
+		// Sort individuals according to fitness to get the ranking.
 		individuals = new ArrayList<Individual>(individuals);
 		Collections.sort(individuals, new FitnessComparator(this.evaluation));
 		
+		
+		// Apply the SUS algorithm to select parents based on the linear rank probability.
 		int populationSize = individuals.size();
 		double spacing = 1.0 / populationSize;
 		double position = this.random.nextDouble() * spacing;
@@ -182,7 +196,7 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 			currentParent++;
 
 			position += spacing;
-			// We need to implement wraparound since this is also the case in the (n-armed)
+			// We need to wraparound here since this is also the case in the (n-armed)
 			// roulette wheel...
 			if(position > 1.0) {
 				position -= 1.0;
@@ -194,9 +208,11 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 		return parents;
 	}
 	
-	private double probabilityForRank(int rank, int size, double expectedOffspring) {
+	private double probabilityForRank(int rank, int size, double expectedOffspring) {		
 		rank = size - rank - 1;
-		
+
+		// Linear ranking algorithm as in the book. expectedOffspring determines the
+		// amount of expected selections for the fittest individual (ie, the individual with the highest rank).
 		return ((2.0 - expectedOffspring) / (double)size) + (((2.0 * (double)rank) * (expectedOffspring - 1.0)) / ((double)size * ((double)size - 1.0)));
 	}
 	
@@ -211,6 +227,9 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 				Gene gene = individual.getGene(this.random.nextInt(10));
 				
 				gene.mutate(mutationStandardDeviation);
+				
+				// Our mutation has caused the individuals' fitness to change, so invalidate
+				// its cached fitness.
 				individual.invalidateCachedFitness();
 			}
 		}
@@ -237,6 +256,12 @@ public class SimpleEvolutionaryStrategy implements EvolutionaryStrategy {
 					if(n >= crossoverPoint) {
 						double mixingRatio = this.random.nextDouble();
 						
+						
+						// We have chosen to use mixing here instead of swapping.
+						// This could be configurable by the tuner in the ideal case
+						// but we chose not to go this way. The mixing operation will
+						// invalidate the cached fitness for us so we don't have to
+						// do that here explicitly.
 						individual.mixGene(otherIndividual, n, mixingRatio);
 						//individual.swapGene(otherIndividual, n);
 					}

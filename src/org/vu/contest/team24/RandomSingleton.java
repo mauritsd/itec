@@ -9,7 +9,7 @@ public class RandomSingleton {
 	private Random random;
 
 	private RandomSingleton() {
-		// Exists only to defeat instantiation.
+		// Exists only to defeat instantiation by external code.
 	}
 
 	public static RandomSingleton getInstance() {

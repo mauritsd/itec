@@ -49,6 +49,9 @@ public class Individual {
 	}
 	
 	public void configureStrategy(SimpleEvolutionaryStrategy strategy) {
+		// Configure a SimpleEvolutionaryStrategy according to the parameter values
+		// defined by this individual. This is called by the tuner for setup before evaluating an
+		// individual.
 		MultipleChoiceGene populationSizeGene = (MultipleChoiceGene)this.genes.get(GENE_INDEX_POPULATION_SIZE);
 		DoubleGene mutationProbabilityGene = (DoubleGene)this.genes.get(GENE_INDEX_MUTATION_PROBABILITY);
 		DoubleGene mutationStandardDeviationGene = (DoubleGene)this.genes.get(GENE_INDEX_MUTATION_STANDARD_DEVIATION);

@@ -44,12 +44,16 @@ public class Individual {
 	}
 	
 	public void swapGene(Individual individual, int geneIndex) {
+		// Invalidate both our cached fitness as the cached fitness of the
+		// individual whose gene we will be mixing with.
 		invalidateCachedFitness();
 		individual.invalidateCachedFitness();
 		
 		Gene ourGene = this.genes.get(geneIndex);
 		Gene theirGene = individual.genes.get(geneIndex);
 		
+		// Note that because we are both instances of Individual we are able
+		// to access the private instance variables of the other Gene as well.
 		this.genes.set(geneIndex, theirGene);
 		individual.genes.set(geneIndex, ourGene);
 	}
@@ -59,12 +63,17 @@ public class Individual {
 	}
 	
 	public void mixGene(Individual individual, int geneIndex, double mixingRatio) {
+		// Invalidate both our cached fitness as the cached fitness of the
+		// individual whose gene we will be mixing with.
 		invalidateCachedFitness();
 		individual.invalidateCachedFitness();
 		
 		Gene ourGene = this.genes.get(geneIndex);
 		Gene theirGene = individual.genes.get(geneIndex);
 		
+		// Mix the value of this gene and the other gene given the specified mixing
+		// ratio. Note that because we are both instances of Individual we are able
+		// to access the private instance variables of the other Gene as well.
 		double mixedValue = ((ourGene.getValue() * mixingRatio) + (theirGene.getValue() * (1.0 - mixingRatio)));
 		ourGene.setValue(mixedValue);
 		theirGene.setValue(mixedValue);
@@ -85,6 +94,8 @@ public class Individual {
 	}
 	
 	public double getFitness(ContestEvaluation evaluation) throws MaximumEvaluationsExceededException {
+		// If the fitness is not cached try to generate it by
+		// passing it to the ContestEvaluation.
 		if(this.cachedFitness == null) {
 			double[] geneArray = new double[10];
 			int geneCount = this.genes.size();
@@ -93,6 +104,10 @@ public class Individual {
 				geneArray[i] = g.getValue();
 			}
 			this.cachedFitness = (Double)evaluation.evaluate(geneArray);
+			
+			// Uh oh! The ContestEvaluation returned null, which means we've exceeded
+			// our evaluation budget. Throw the MaximumEvaluationsExceededException, which
+			// in turn will signal to the caller that he should terminate his EA.
 			if(this.cachedFitness == null) {
 				throw new MaximumEvaluationsExceededException();
 			}

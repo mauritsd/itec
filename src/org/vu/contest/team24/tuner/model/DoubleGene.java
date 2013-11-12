@@ -32,9 +32,9 @@ public class DoubleGene implements Gene {
 	}
 	
 	public void crossover(Gene otherGene) {
+		// Mix the value of this gene with another gene with a random mixing ratio.
 		DoubleGene otherDoubleGene = (DoubleGene)otherGene;
 		double ratio = this.random.nextDouble();
-		
 		
 		double ourValue = (Double) this.getValue();
 		double theirValue = (Double) otherGene.getValue();
@@ -50,6 +50,7 @@ public class DoubleGene implements Gene {
 	}
 	
 	private void setValue(double value) {
+		// If value falls outside the defined interval clamp it to the boundary.
 		if(value > this.max) {
 			value = this.max;
 		} else if(value < this.min) {

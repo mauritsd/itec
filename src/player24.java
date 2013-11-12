@@ -29,16 +29,17 @@ public class player24 implements ContestSubmission {
 	}
 
 	public void setEvaluation(ContestEvaluation evaluation) {
-		// Set evaluation problem used in the run
+		// Set evaluation problem used in the run.
 		this.evaluation = evaluation;
 		
-		// Get evaluation properties
+		// Get evaluation properties.
 		Properties props = evaluation.getProperties();
 		this.evaluations = Integer.parseInt(props.getProperty("Evaluations"));
 		this.multimodal = Boolean.parseBoolean(props.getProperty("Multimodal"));
 		this.regular = Boolean.parseBoolean(props.getProperty("Regular"));
 		this.seperable = Boolean.parseBoolean(props.getProperty("Separable"));
 		
+		// We only have one strategy, but set its parameters based on function properties.
 		this.strategy = new SimpleEvolutionaryStrategy(this.evaluation);
 		if(!isRegular()) {
 			this.strategy.setPopulationSize(10);
@@ -83,6 +84,7 @@ public class player24 implements ContestSubmission {
 	}
 	
 	public void run() {
+		// Run the algorithm until it signals we have run out of our iteration budget.
 		while(!this.strategy.shouldTerminate()) {
 			this.strategy.evolveGeneration();
 		}

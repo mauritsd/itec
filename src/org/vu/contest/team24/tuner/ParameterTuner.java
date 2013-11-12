@@ -139,10 +139,11 @@ public class ParameterTuner {
 	}
 	
 	private List<Individual> selectParents(List<Individual> individuals, Map<Individual, Double> fitnesses) {
-		// Sort list to get the ranking.
+		// Sort parents to get the ordered list for ranking.
 		individuals = new ArrayList<Individual>(individuals);
 		Collections.sort(individuals, new FitnessComparator(fitnesses));
 		
+		// Print parameters of fittest individual.
 		Individual fittestIndividual = individuals.get(0);
 		double fittestFitness = fitnesses.get(fittestIndividual);
 		System.out.println("Fittest individual has fitness: " + fittestFitness);
@@ -150,7 +151,7 @@ public class ParameterTuner {
 			fittestIndividual.printSummary(fittestFitness);
 		}
 		
-		
+		// Apply Stochastic Universal Sampling to select the parents.
 		int populationSize = individuals.size();
 		double spacing = 1.0 / populationSize;
 		double position = this.random.nextDouble() * spacing;
@@ -182,7 +183,8 @@ public class ParameterTuner {
 	
 	private double probabilityForRank(int rank, int size, double expectedOffspring) {
 		rank = size - rank - 1;
-		
+		// Linear ranking. expectedOffspring is the number of offspring the fittest (highest ranking)
+		// individual should be expected to get.
 		return ((2.0 - expectedOffspring) / (double)size) + (((2.0 * (double)rank) * (expectedOffspring - 1.0)) / ((double)size * ((double)size - 1.0)));
 	}
 	
